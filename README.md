@@ -1,0 +1,2 @@
+# EssentialsSSH
+For spawn, home
