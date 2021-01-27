@@ -9,6 +9,6 @@ class PlayerRespawnListener : Listener {
 
     @EventHandler
     fun onRespawn(event: PlayerRespawnEvent) {
-        event.respawnLocation = spawnManager.spawn.location
+        event.respawnLocation = spawnManager.spawn.getLocation()
     }
 }

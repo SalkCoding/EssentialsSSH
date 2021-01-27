@@ -15,9 +15,9 @@ class CommandSpawn : CommandExecutor {
             return true
         }
 
-        val spawn = spawnManager.spawn
-        if (sender.isOp) sender.teleportAsync(spawn.location)
-        else TeleportCooltime.addPlayer(sender, spawn.location, 5, null, false)
+        val spawn = spawnManager.spawn.getLocation()
+        if (sender.isOp) sender.teleportAsync(spawn)
+        else TeleportCooltime.addPlayer(sender, spawn, 5, null, false)
         return true
     }
 }

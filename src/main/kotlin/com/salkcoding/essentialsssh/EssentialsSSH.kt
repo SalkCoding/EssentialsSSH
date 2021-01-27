@@ -11,7 +11,6 @@ import com.salkcoding.essentialsssh.data.SpawnManager
 import com.salkcoding.essentialsssh.listener.BedListener
 import com.salkcoding.essentialsssh.listener.PlayerConnectionListener
 import com.salkcoding.essentialsssh.listener.PlayerRespawnListener
-import org.bukkit.Bukkit
 import org.bukkit.plugin.java.JavaPlugin
 
 lateinit var essentials: EssentialsSSH
@@ -24,6 +23,10 @@ class EssentialsSSH : JavaPlugin() {
 
     override fun onEnable() {
         essentials = this
+
+        saveDefaultConfig()
+        currentServerName = config.getString("serverName")!!
+
         bungeeApi = BungeeChannelApi.of(this)
 
         val receiver = CommandReceiver()
@@ -33,11 +36,6 @@ class EssentialsSSH : JavaPlugin() {
         bungeeApi.registerForwardListener("essentials-spawn-teleport", receiver)
         bungeeApi.registerForwardListener("essentials-sethome", receiver)
         bungeeApi.registerForwardListener("essentials-sethome-delete", receiver)
-
-        Bukkit.getScheduler().runTaskAsynchronously(this, Runnable {
-            val future = bungeeApi.server
-            currentServerName = future.get()
-        })
 
         spawnManager = SpawnManager()
         homeManager = HomeManager()

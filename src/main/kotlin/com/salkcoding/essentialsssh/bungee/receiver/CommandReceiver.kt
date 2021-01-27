@@ -95,7 +95,7 @@ class CommandReceiver : BungeeChannelApi.ForwardConsumer {
                         return@Runnable
                     }
 
-                    player.teleportAsync(spawnManager.spawn.location)
+                    player.teleportAsync(spawnManager.spawn.getLocation())
                 }, 15)
             }
             "essentials-sethome" -> {

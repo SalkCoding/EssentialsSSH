@@ -10,7 +10,9 @@ class Spawn(
     val y: Double,
     val z: Double,
     val yaw: Float,
-    val pitch: Float
+    val pitch: Float,
 ) {
-    @Transient val location = Location(Bukkit.getWorld(worldName), x, y, z, yaw, pitch)
+    fun getLocation(): Location {
+        return Location(Bukkit.getWorld(worldName), x, y, z, yaw, pitch).toCenterLocation()
+    }
 }

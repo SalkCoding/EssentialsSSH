@@ -59,16 +59,16 @@ class HomeManager {
     }
 
     fun saveAndUnload(uuid: UUID) {
-        Bukkit.getScheduler().runTaskAsynchronously(essentials, Runnable {
-            JsonWriter.saveHome(uuid, homeMap[uuid]!!)
-        })
+        if (homeMap.containsKey(uuid)) {
+            Bukkit.getScheduler().runTaskAsynchronously(essentials, Runnable {
+                JsonWriter.saveHome(uuid, homeMap[uuid]!!)
+            })
+        }
     }
 
     fun saveAllAndUnload() {
-        Bukkit.getScheduler().runTaskAsynchronously(essentials, Runnable {
-            homeMap.forEach {
-                JsonWriter.saveHome(it.key, it.value)
-            }
-        })
+        homeMap.forEach {
+            JsonWriter.saveHome(it.key, it.value)
+        }
     }
 }
