@@ -32,6 +32,8 @@ class CommandReceiver : BungeeChannelApi.ForwardConsumer {
                         messageOut.writeBoolean(homeManager.hasHome(playerUUID))
                     } catch (exception: IOException) {
                         exception.printStackTrace()
+                    } finally {
+                        messageOut.close()
                     }
                     bungeeApi.forward(serverName, "essentials-home-receive", messageBytes.toByteArray())
                 })
@@ -65,6 +67,8 @@ class CommandReceiver : BungeeChannelApi.ForwardConsumer {
                             messageOut.writeFloat(home.pitch)
                         } catch (exception: IOException) {
                             exception.printStackTrace()
+                        } finally {
+                            messageOut.close()
                         }
                         bungeeApi.forward(home.serverName, "essentials-home-teleport", messageBytes.toByteArray())
                     }
@@ -82,6 +86,8 @@ class CommandReceiver : BungeeChannelApi.ForwardConsumer {
                         messageOut.writeUTF(currentServerName)
                     } catch (exception: IOException) {
                         exception.printStackTrace()
+                    } finally {
+                        messageOut.close()
                     }
                     bungeeApi.forward(serverName, "essentials-spawn-receive", messageBytes.toByteArray())
                 })

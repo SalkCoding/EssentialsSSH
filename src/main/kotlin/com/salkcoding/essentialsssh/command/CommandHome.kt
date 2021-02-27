@@ -28,7 +28,7 @@ class CommandHome : CommandExecutor {
             sender.sendMessage("저장된 홈이 없습니다!".errorFormat())
             return true
         }
-        //TODO bungee
+
         if (home.isSameServer) {
             if (sender.isOp) sender.teleportAsync(home.getLocation()!!)
             else TeleportCooltime.addPlayer(
@@ -54,6 +54,8 @@ class CommandHome : CommandExecutor {
                     messageOut.writeFloat(home.pitch)
                 } catch (exception: IOException) {
                     exception.printStackTrace()
+                } finally {
+                    messageOut.close()
                 }
                 bungeeApi.forward(home.serverName, "essentials-home-teleport", messageBytes.toByteArray())
             }
