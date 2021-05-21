@@ -18,6 +18,7 @@ lateinit var bungeeApi: BungeeChannelApi
 lateinit var spawnManager: SpawnManager
 lateinit var homeManager: HomeManager
 lateinit var currentServerName: String
+lateinit var enabledWorld: Set<String>
 
 class EssentialsSSH : JavaPlugin() {
 
@@ -26,6 +27,7 @@ class EssentialsSSH : JavaPlugin() {
 
         saveDefaultConfig()
         currentServerName = config.getString("serverName")!!
+        enabledWorld = config.getList("enabledWorld")!!.toSet() as Set<String>
 
         bungeeApi = BungeeChannelApi.of(this)
 

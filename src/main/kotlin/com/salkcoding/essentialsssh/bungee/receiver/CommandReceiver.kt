@@ -123,7 +123,27 @@ class CommandReceiver : BungeeChannelApi.ForwardConsumer {
                 val x = inMessage.readDouble()
                 val y = inMessage.readDouble()
                 val z = inMessage.readDouble()
-                if (homeManager.deleteHome(playerUUID, serverName, worldName, x, y, z)) bungeeApi.sendMessage(playerName, "홈이 삭제되었습니다.".warnFormat())
+                if (homeManager.deleteHome(
+                        playerUUID,
+                        serverName,
+                        worldName,
+                        x,
+                        y,
+                        z
+                    )
+                ) bungeeApi.sendMessage(playerName, "홈이 삭제되었습니다.".warnFormat())
+            }
+            "essentials-respawn" -> {
+                val playerName = inMessage.readUTF()
+                bungeeApi.connectOther(playerName, currentServerName)
+                Bukkit.getScheduler().runTaskLater(essentials, Runnable {
+                    val player = Bukkit.getPlayer(playerName)
+                    if (player == null) {
+                        essentials.logger.warning("$playerName trying to respawn but it failed because the instance of Player is null!")
+                        return@Runnable
+                    }
+                    player.teleportAsync(spawnManager.spawn.getLocation())
+                }, 15)
             }
         }
     }

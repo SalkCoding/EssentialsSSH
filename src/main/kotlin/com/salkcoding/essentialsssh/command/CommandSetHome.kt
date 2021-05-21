@@ -3,6 +3,7 @@ package com.salkcoding.essentialsssh.command
 import com.salkcoding.essentialsssh.currentServerName
 import com.salkcoding.essentialsssh.essentials
 import com.salkcoding.essentialsssh.homeManager
+import com.salkcoding.essentialsssh.util.errorFormat
 import com.salkcoding.essentialsssh.util.infoFormat
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
@@ -13,6 +14,11 @@ class CommandSetHome : CommandExecutor {
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
         if (sender !is Player) {
             essentials.logger.warning("Player only command")
+            return true
+        }
+
+        if (!sender.isOp) {
+            sender.sendMessage("권한이 없습니다!".errorFormat())
             return true
         }
 

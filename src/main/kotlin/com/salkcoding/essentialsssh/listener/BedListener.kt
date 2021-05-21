@@ -1,11 +1,14 @@
 package com.salkcoding.essentialsssh.listener
 
 import com.salkcoding.essentialsssh.currentServerName
+import com.salkcoding.essentialsssh.enabledWorld
 import com.salkcoding.essentialsssh.homeManager
+import com.salkcoding.essentialsssh.util.errorFormat
 import com.salkcoding.essentialsssh.util.infoFormat
 import com.salkcoding.essentialsssh.util.warnFormat
 import org.bukkit.Material
 import org.bukkit.World
+import org.bukkit.event.Event
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
@@ -14,28 +17,29 @@ import org.bukkit.event.player.PlayerInteractEvent
 
 class BedListener : Listener {
 
-    companion object {
-        val bedSet = setOf(
-            Material.BLACK_BED,
-            Material.BLUE_BED,
-            Material.BROWN_BED,
-            Material.CYAN_BED,
-            Material.GRAY_BED,
-            Material.GREEN_BED,
-            Material.LIGHT_BLUE_BED,
-            Material.LIGHT_GRAY_BED,
-            Material.LIME_BED,
-            Material.MAGENTA_BED,
-            Material.ORANGE_BED,
-            Material.PINK_BED,
-            Material.RED_BED,
-            Material.WHITE_BED,
-            Material.YELLOW_BED,
-        )
-    }
+    private val bedSet = setOf(
+        Material.BLACK_BED,
+        Material.BLUE_BED,
+        Material.BROWN_BED,
+        Material.CYAN_BED,
+        Material.GRAY_BED,
+        Material.GREEN_BED,
+        Material.LIGHT_BLUE_BED,
+        Material.LIGHT_GRAY_BED,
+        Material.LIME_BED,
+        Material.MAGENTA_BED,
+        Material.ORANGE_BED,
+        Material.PINK_BED,
+        Material.RED_BED,
+        Material.WHITE_BED,
+        Material.YELLOW_BED,
+    )
 
     @EventHandler
     fun onInteract(event: PlayerInteractEvent) {
+        if (event.useInteractedBlock() == Event.Result.DENY || event.useItemInHand() == Event.Result.DENY)
+            return
+
         val player = event.player
         val world = player.world
         if (world.environment != World.Environment.NORMAL) return
@@ -43,8 +47,12 @@ class BedListener : Listener {
         if (event.action == Action.RIGHT_CLICK_BLOCK && event.clickedBlock != null) {
             if (event.clickedBlock!!.type !in bedSet) return
 
+            if (world.name !in enabledWorld) {
+                player.sendMessage("현재 월드에서는 사용할 수 없습니다.".errorFormat())
+                return
+            }
+
             val location = event.clickedBlock!!.location
-            player.setBedSpawnLocation(location, true)
             homeManager.setHome(
                 player.uniqueId,
                 currentServerName,

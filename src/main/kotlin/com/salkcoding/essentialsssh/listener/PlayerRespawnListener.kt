@@ -9,6 +9,7 @@ class PlayerRespawnListener : Listener {
 
     @EventHandler
     fun onRespawn(event: PlayerRespawnEvent) {
+        event.player.sendTitle("\ue405", "", 0, 10, 30)
         event.respawnLocation = spawnManager.spawn.getLocation()
     }
 }
