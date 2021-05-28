@@ -34,6 +34,7 @@ class EssentialsSSH : JavaPlugin() {
         val receiver = CommandReceiver()
         bungeeApi.registerForwardListener("essentials-home", receiver)
         bungeeApi.registerForwardListener("essentials-home-teleport", receiver)
+        bungeeApi.registerForwardListener("essentials-respawn", receiver)
         bungeeApi.registerForwardListener("essentials-spawn", receiver)
         bungeeApi.registerForwardListener("essentials-spawn-teleport", receiver)
         bungeeApi.registerForwardListener("essentials-sethome", receiver)
