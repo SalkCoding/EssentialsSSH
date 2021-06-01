@@ -42,7 +42,8 @@ class BedListener : Listener {
 
         val player = event.player
         val world = player.world
-        if (world.environment != World.Environment.NORMAL) return
+
+        if ("nether" in world.name || "ender" in world.name) return
 
         if (event.action == Action.RIGHT_CLICK_BLOCK && event.clickedBlock != null) {
             if (event.clickedBlock!!.type !in bedSet) return
