@@ -1,149 +1,87 @@
 package com.salkcoding.essentialsssh.bungee.receiver
 
-import com.google.common.io.ByteStreams
-import com.salkcoding.essentialsssh.*
-import com.salkcoding.essentialsssh.bungee.channelapi.BungeeChannelApi
+import com.google.gson.JsonParser
+import com.salkcoding.essentialsssh.bukkitLinkedAPI
+import com.salkcoding.essentialsssh.essentials
+import com.salkcoding.essentialsssh.homeManager
+import com.salkcoding.essentialsssh.spawnManager
+import com.salkcoding.essentialsssh.util.errorFormat
 import com.salkcoding.essentialsssh.util.infoFormat
-import com.salkcoding.essentialsssh.util.warnFormat
+import fish.evatuna.metamorphosis.kafka.KafkaReceiveEvent
+import me.baiks.bukkitlinked.api.TeleportResult
 import org.bukkit.Bukkit
-import org.bukkit.entity.Player
-import java.io.ByteArrayOutputStream
-import java.io.DataOutputStream
-import java.io.IOException
+import org.bukkit.event.EventHandler
+import org.bukkit.event.Listener
 import java.util.*
 
-class CommandReceiver : BungeeChannelApi.ForwardConsumer {
+class CommandReceiver : Listener {
 
-    override fun accept(channel: String, receiver: Player, data: ByteArray) {
-        val inMessage = ByteStreams.newDataInput(data)
-        when (channel) {
-            "essentials-home" -> {
+    @EventHandler
+    fun onReceived(event: KafkaReceiveEvent) {
+        if (!event.key.startsWith("com.salkcoding.essentialsssh")) return
+        val json = JsonParser().parse(event.value).asJsonObject
+        val uuid = UUID.fromString(json["uuid"].asString)
+        //Split a last sub key
+        when (event.key.split(".").last()) {
+            "home" -> {
                 Bukkit.getScheduler().runTaskAsynchronously(essentials, Runnable {
-                    val playerName = inMessage.readUTF()
-                    val playerUUID = UUID.fromString(inMessage.readUTF())
-                    val serverName = inMessage.readUTF()
-
-                    val messageBytes = ByteArrayOutputStream()
-                    val messageOut = DataOutputStream(messageBytes)
-                    try {
-                        messageOut.writeUTF(playerName)
-                        messageOut.writeUTF(playerUUID.toString())
-                        messageOut.writeUTF(currentServerName)
-                        messageOut.writeBoolean(homeManager.hasHome(playerUUID))
-                    } catch (exception: IOException) {
-                        exception.printStackTrace()
-                    } finally {
-                        messageOut.close()
-                    }
-                    bungeeApi.forward(serverName, "essentials-home-receive", messageBytes.toByteArray())
-                })
-            }
-            "essentials-home-teleport" -> {
-                Bukkit.getScheduler().runTaskAsynchronously(essentials, Runnable {
-                    val playerName = inMessage.readUTF()
-                    val playerUUID = UUID.fromString(inMessage.readUTF())
-                    val home = homeManager.getHome(playerUUID)!!
-                    if (home.isSameServer) {
-                        bungeeApi.connectOther(playerName, currentServerName)
-                        Bukkit.getScheduler().runTaskLater(essentials, Runnable {
-                            val player = Bukkit.getPlayer(playerName)
-                            if (player != null) {
-                                player.teleportAsync(home.getLocation()!!)
-                                player.sendMessage("이동되었습니다.".infoFormat())
-                            } else essentials.logger.warning("$playerName teleport to home failed.(Player is not existed)")
-                        }, 15)
-                    } else {
-                        bungeeApi.connectOther(playerName, home.serverName)
-
-                        val messageBytes = ByteArrayOutputStream()
-                        val messageOut = DataOutputStream(messageBytes)
-                        try {
-                            messageOut.writeUTF(playerName)
-                            messageOut.writeUTF(home.worldName)
-                            messageOut.writeDouble(home.x)
-                            messageOut.writeDouble(home.y)
-                            messageOut.writeDouble(home.z)
-                            messageOut.writeFloat(home.yaw)
-                            messageOut.writeFloat(home.pitch)
-                        } catch (exception: IOException) {
-                            exception.printStackTrace()
-                        } finally {
-                            messageOut.close()
+                    val hasHome = homeManager.hasHome(uuid)
+                    if (hasHome) {
+                        val home = homeManager.getHome(uuid)!!
+                        val name = json["name"].asString
+                        val result = bukkitLinkedAPI.teleport(
+                            name, home.serverName, home.worldName,
+                            home.x.toInt(), home.y.toInt(), home.z.toInt()
+                        )
+                        if (result != TeleportResult.TELEPORT_STARTED) {
+                            essentials.logger.warning("$name teleport to home fail!: $result")
                         }
-                        bungeeApi.forward(home.serverName, "essentials-home-teleport", messageBytes.toByteArray())
-                    }
+                    } else bukkitLinkedAPI.sendMessageAcrossServer(uuid, "지정된 홈이 없습니다!".errorFormat())
                 })
             }
-            "essentials-spawn" -> {
+            "sethome" -> {
+                val serverName = json["serverName"].asString
+                val worldName = json["worldName"].asString
+                val x = json["x"].asDouble
+                val y = json["y"].asDouble
+                val z = json["z"].asDouble
+                val yaw = json["yaw"].asFloat
+                val pitch = json["pitch"].asFloat
+                homeManager.setHome(uuid, serverName, worldName, x, y, z, yaw, pitch)
+            }
+            "delhome" -> {
+                val serverName = json["serverName"].asString
+                val worldName = json["worldName"].asString
+                val x = json["x"].asDouble
+                val y = json["y"].asDouble
+                val z = json["z"].asDouble
+                if (homeManager.deleteHome(uuid, serverName, worldName, x, y, z)) {
+                    bukkitLinkedAPI.sendMessageAcrossServer(uuid, "홈이 삭제되었습니다.".infoFormat())
+                }
+            }
+            "spawn" -> {
                 Bukkit.getScheduler().runTaskAsynchronously(essentials, Runnable {
-                    val playerName = inMessage.readUTF()
-                    val serverName = inMessage.readUTF()
-
-                    val messageBytes = ByteArrayOutputStream()
-                    val messageOut = DataOutputStream(messageBytes)
-                    try {
-                        messageOut.writeUTF(playerName)
-                        messageOut.writeUTF(currentServerName)
-                    } catch (exception: IOException) {
-                        exception.printStackTrace()
-                    } finally {
-                        messageOut.close()
+                    val name = json["name"].asString
+                    val spawn = spawnManager.spawn
+                    val result = bukkitLinkedAPI.teleport(
+                        name, spawn.serverName, spawn.worldName,
+                        spawn.x.toInt(), spawn.y.toInt(), spawn.z.toInt()
+                    )
+                    if (result != TeleportResult.TELEPORT_STARTED) {
+                        essentials.logger.warning("$name teleport to spawn fail!: $result")
                     }
-                    bungeeApi.forward(serverName, "essentials-spawn-receive", messageBytes.toByteArray())
                 })
             }
-            "essentials-spawn-teleport" -> {
-                Bukkit.getScheduler().runTaskLater(essentials, Runnable {
-                    val playerName = inMessage.readUTF()
-                    val player = Bukkit.getPlayer(playerName)
-                    if (player == null) {
-                        essentials.logger.warning("$playerName teleport to spawn failed.(Player is not existed)")
-                        return@Runnable
-                    }
-
-                    player.teleportAsync(spawnManager.spawn.getLocation())
-                }, 15)
-            }
-            "essentials-sethome" -> {
-                val playerUUID = UUID.fromString(inMessage.readUTF())
-                val serverName = inMessage.readUTF()
-                val worldName = inMessage.readUTF()
-                val x = inMessage.readDouble()
-                val y = inMessage.readDouble()
-                val z = inMessage.readDouble()
-                val yaw = inMessage.readFloat()
-                val pitch = inMessage.readFloat()
-                homeManager.setHome(playerUUID, serverName, worldName, x, y, z, yaw, pitch)
-            }
-            "essentials-sethome-delete" -> {
-                val playerName = inMessage.readUTF()
-                val playerUUID = UUID.fromString(inMessage.readUTF())
-                val serverName = inMessage.readUTF()
-                val worldName = inMessage.readUTF()
-                val x = inMessage.readDouble()
-                val y = inMessage.readDouble()
-                val z = inMessage.readDouble()
-                if (homeManager.deleteHome(
-                        playerUUID,
-                        serverName,
-                        worldName,
-                        x,
-                        y,
-                        z
-                    )
-                ) bungeeApi.sendMessage(playerName, "홈이 삭제되었습니다.".warnFormat())
-            }
-            "essentials-respawn" -> {
-                val playerName = inMessage.readUTF()
-                bungeeApi.connectOther(playerName, currentServerName)
-                Bukkit.getScheduler().runTaskLater(essentials, Runnable {
-                    val player = Bukkit.getPlayer(playerName)
-                    if (player == null) {
-                        essentials.logger.warning("$playerName trying to respawn but it failed because the instance of Player is null!")
-                        return@Runnable
-                    }
-                    player.teleportAsync(spawnManager.spawn.getLocation())
-                }, 15)
+            "respawn" -> {
+                val name = json["name"].asString
+                val spawn = spawnManager.spawn
+                val result = bukkitLinkedAPI.teleport(
+                    name, spawn.serverName, spawn.worldName, spawn.x.toInt(),
+                    spawn.y.toInt(), spawn.z.toInt()
+                )
+                if (result != TeleportResult.TELEPORT_STARTED) {
+                    essentials.logger.warning("$name respawn fail!: $result")
+                }
             }
         }
     }

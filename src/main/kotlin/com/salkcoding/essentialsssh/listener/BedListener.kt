@@ -5,7 +5,9 @@ import com.salkcoding.essentialsssh.enabledWorld
 import com.salkcoding.essentialsssh.homeManager
 import com.salkcoding.essentialsssh.util.errorFormat
 import com.salkcoding.essentialsssh.util.infoFormat
+import com.salkcoding.essentialsssh.util.sendErrorTipMessage
 import com.salkcoding.essentialsssh.util.warnFormat
+import org.bukkit.ChatColor
 import org.bukkit.Material
 import org.bukkit.World
 import org.bukkit.event.Event
@@ -49,7 +51,7 @@ class BedListener : Listener {
             if (event.clickedBlock!!.type !in bedSet) return
 
             if (world.name !in enabledWorld) {
-                player.sendMessage("현재 월드에서는 사용할 수 없습니다.".errorFormat())
+                player.sendErrorTipMessage("${ChatColor.RED}현재 월드에서는 사용할 수 없습니다.".errorFormat())
                 return
             }
 
