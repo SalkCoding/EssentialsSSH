@@ -1,23 +1,26 @@
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.5.20'
+    id 'org.jetbrains.kotlin.jvm' version '1.6.10'
 }
 
-group "kr.kro.salk"
-version "1.0.0-SNAPSHOT"
+group 'kr.kro.salk'
+version '1.1.0-SNAPSHOT'
 
 repositories {
+    maven { url 'https://papermc.io/repo/repository/maven-public/' }
     mavenCentral()
-    maven {
-        name = "KotlinBukkitAPI"
-        url "https://nexus.devsrsouza.com.br/repository/maven-public/"
-    }
-    maven { url "https://repo.pl3x.net/" }
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib"
-    compileOnly "br.com.devsrsouza.kotlinbukkitapi:core:0.2.0-SNAPSHOT"
-    compileOnly "net.pl3x.purpur:purpur-api:1.16.5-R0.1-SNAPSHOT"
-    compileOnly files("C:/Users/Josangbeom/Desktop/Minecraft/Library/bukkitlinked-1.3-SNAPSHOT.jar")
-    compileOnly files("C:/Users/Josangbeom/Desktop/Minecraft/Library/Metamorphosis.jar")
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib'
+    implementation 'com.google.code.gson:gson:2.9.0'
+    compileOnly 'io.papermc.paper:paper-api:1.18.1-R0.1-SNAPSHOT'
+    compileOnly files('libs/bukkitlinked-1.8.6-SNAPSHOT.jar')
+    compileOnly files('libs/Metamorphosis-1.0-API.jar')
+}
+
+jar {
+    from {
+        configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect { zipTree(it) }
+    }
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }

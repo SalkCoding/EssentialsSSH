@@ -8,10 +8,12 @@ import com.salkcoding.essentialsssh.command.CommandSpawn
 import com.salkcoding.essentialsssh.data.HomeManager
 import com.salkcoding.essentialsssh.data.SpawnManager
 import com.salkcoding.essentialsssh.listener.BedListener
+import com.salkcoding.essentialsssh.listener.PlayerJoinListener
 import com.salkcoding.essentialsssh.listener.PlayerRespawnListener
 import fish.evatuna.metamorphosis.Metamorphosis
 import me.baiks.bukkitlinked.BukkitLinked
 import me.baiks.bukkitlinked.api.BukkitLinkedAPI
+import org.bukkit.World
 import org.bukkit.plugin.java.JavaPlugin
 
 lateinit var essentials: EssentialsSSH
@@ -21,6 +23,7 @@ lateinit var spawnManager: SpawnManager
 lateinit var homeManager: HomeManager
 lateinit var currentServerName: String
 lateinit var enabledWorld: Set<String>
+lateinit var mainWorld: World
 
 class EssentialsSSH : JavaPlugin() {
 
@@ -46,6 +49,7 @@ class EssentialsSSH : JavaPlugin() {
         saveDefaultConfig()
         currentServerName = config.getString("serverName")!!
         enabledWorld = config.getList("enabledWorld")!!.toSet() as Set<String>
+        mainWorld = server.getWorld(config.getString("mainWorld")!!)!!
 
         spawnManager = SpawnManager()
         homeManager = HomeManager()
@@ -61,6 +65,8 @@ class EssentialsSSH : JavaPlugin() {
 
         server.pluginManager.registerEvents(BedListener(), this)
         server.pluginManager.registerEvents(PlayerRespawnListener(), this)
+
+        server.pluginManager.registerEvents(PlayerJoinListener(), this)
 
         logger.info("Plugin enabled")
     }
