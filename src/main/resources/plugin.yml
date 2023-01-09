@@ -2,10 +2,9 @@ name: EssentialsSSH
 main: com.salkcoding.essentialsssh.EssentialsSSH
 version: 1.1.0-SNAPSHOT
 description: Essentials by Salk_Coding
-api-version: 1.18
+api-version: 1.19
 authors: [Salk_Coding, Peulia]
 depend:
-  - kotlinbukkit
   - Metamorphosis
   - BukkitLinked
 commands:
